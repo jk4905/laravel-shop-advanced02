@@ -6,6 +6,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
@@ -54,13 +55,13 @@ class ProductsController extends Controller
         $products = $builder->paginate(16);
 
         return view('products.index', [
-            'products' => $products,
-            'filters'  => [
+            'products'     => $products,
+            'filters'      => [
                 'search' => $search,
                 'order'  => $order,
             ],
             // 等价于 isset($category) ? $category : null
-            'category' => $category ?? null,
+            'category'     => $category ?? null,
         ]);
     }
 
