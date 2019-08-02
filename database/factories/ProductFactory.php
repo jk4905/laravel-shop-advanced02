@@ -18,9 +18,12 @@ $factory->define(Product::class, function (Faker $faker) {
         "https://iocaffcdn.phphub.org/uploads/images/201806/01/5320/2JMRaFwRpo.jpg",
         "https://iocaffcdn.phphub.org/uploads/images/201806/01/5320/pa7DrV43Mw.jpg",
     ]);
+    // 从数据库中随机取一个类目
+    $category = \App\Models\Category::query()->where('is_directory', false)->inRandomOrder()->first();
 
     return [
         'title'        => $faker->word,
+        'category_id'  => $category ? $category->id : null,
         'description'  => $faker->sentence,
         'image'        => $image,
         'on_sale'      => true,
