@@ -6,9 +6,11 @@ use App\Events\OrderReviewed;
 use App\Exceptions\CouponCodeUnavailableException;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\ApplyRefundRequest;
+use App\Http\Requests\CrowdfundingOrderRequest;
 use App\Http\Requests\OrderRequest;
 use App\Http\Requests\SendReviewRequest;
 use App\Models\CouponCode;
+use App\Models\ProductSku;
 use App\Models\UserAddress;
 use App\Models\Order;
 use App\Services\OrderService;
@@ -21,19 +23,19 @@ class OrdersController extends Controller
     {
         $orders = Order::query()
             // 使用 with 方法预加载，避免N + 1问题
-            ->with(['items.product', 'items.productSku'])
-            ->where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate();
+            ->with([
+                'items.product',
+                'items.productSku'
+            ])->where('user_id', $request->user()->id)->orderBy('created_at', 'desc')->paginate();
 
         return view('orders.index', ['orders' => $orders]);
     }
 
     public function store(OrderRequest $request, OrderService $orderService)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $address = UserAddress::find($request->input('address_id'));
-        $coupon  = null;
+        $coupon = null;
 
         // 如果用户提交了优惠码
         if ($code = $request->input('coupon_code')) {
@@ -44,6 +46,16 @@ class OrdersController extends Controller
         }
         // 参数中加入 $coupon 变量
         return $orderService->store($user, $address, $request->input('remark'), $request->input('items'), $coupon);
+    }
+
+    public function crowdfunding(CrowdfundingOrderRequest $request, OrderService $orderService)
+    {
+        $user = $request->user();
+        $address = UserAddress::find($request->input('address_id'));
+        $sku = ProductSku::find($request->input('sku_id'));
+        $amount = $request->input('amount');
+
+        return $orderService->crowdfunding($user, $address, $sku, $amount);
     }
 
     public function show(Order $order, Request $request)
@@ -126,7 +138,7 @@ class OrdersController extends Controller
             throw new InvalidRequestException('该订单已经申请过退款，请勿重复申请');
         }
         // 将用户输入的退款理由放到订单的 extra 字段中
-        $extra                  = $order->extra ?: [];
+        $extra = $order->extra ?: [];
         $extra['refund_reason'] = $request->input('reason');
         // 将订单退款状态改为已申请退款
         $order->update([
@@ -136,4 +148,6 @@ class OrdersController extends Controller
 
         return $order;
     }
+
+
 }
