@@ -3,6 +3,7 @@
 namespace App\Admin\Controllers;
 
 use App\Models\Category;
+use App\Models\CrowdfundingProduct;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -11,7 +12,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Show;
 
-class ProductsController extends Controller
+class CrowdfundingProductsController extends Controller
 {
     use HasResourceActions;
 
@@ -23,7 +24,7 @@ class ProductsController extends Controller
      */
     public function index(Content $content)
     {
-        return $content->header('商品列表')->body($this->grid());
+        return $content->header('众筹商品列表')->body($this->grid());
     }
 
     /**
@@ -35,7 +36,7 @@ class ProductsController extends Controller
      */
     public function edit($id, Content $content)
     {
-        return $content->header('编辑商品')->body($this->form()->edit($id));
+        return $content->header('编辑众筹商品')->body($this->form()->edit($id));
     }
 
     /**
@@ -46,7 +47,7 @@ class ProductsController extends Controller
      */
     public function create(Content $content)
     {
-        return $content->header('创建商品')->body($this->form());
+        return $content->header('创建众筹商品')->body($this->form());
     }
 
     /**
@@ -58,7 +59,7 @@ class ProductsController extends Controller
     {
         $grid = new Grid(new Product);
         // 使用 with 来预加载商品类目数据，减少 SQL 查询
-        $grid->model()->where('type', Product::TYPE_NORMAL)->with(['category']);
+        $grid->model()->where('type', Product::TYPE_CROWDFUNDING)->with(['category']);
 
         $grid->id('ID')->sortable();
         $grid->title('商品名称');
@@ -68,9 +69,14 @@ class ProductsController extends Controller
             return $value ? '是' : '否';
         });
         $grid->price('价格');
-        $grid->rating('评分');
-        $grid->sold_count('销量');
-        $grid->review_count('评论数');
+
+        // 展示众筹相关字段
+        $grid->column('crowdfunding.end_at', '结束时间');
+        $grid->column('crowdfunding.target_amount', '目标金额');
+        $grid->column('crowdfunding.total_amount', '目前金额');
+        $grid->column('crowdfunding.status', '状态')->display(function ($value) {
+            return CrowdfundingProduct::$statusMap[$value];
+        });
 
         $grid->actions(function ($actions) {
             $actions->disableView();
@@ -86,6 +92,7 @@ class ProductsController extends Controller
         return $grid;
     }
 
+
     /**
      * Make a form builder.
      *
@@ -94,7 +101,9 @@ class ProductsController extends Controller
     protected function form()
     {
         $form = new Form(new Product);
-        $form->hidden('type', '类型')->value(Product::TYPE_NORMAL);
+
+        // 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
+        $form->hidden('type', '类型')->value(Product::TYPE_CROWDFUNDING);
         // 创建一个输入框，第一个参数 title 是模型的字段名，第二个参数是该字段描述
         $form->text('title', '商品名称')->rules('required');
 
@@ -115,6 +124,10 @@ class ProductsController extends Controller
 
         // 创建一组单选框
         $form->radio('on_sale', '上架')->options(['1' => '是', '0' => '否'])->default('0');
+
+        // 添加众筹相关字段
+        $form->text('crowdfunding.target_amount', '众筹目标金额')->rules('required|numeric|min:0.1');
+        $form->datetime('crowdfunding.end_at', '众筹结束时间')->rules('required|date');
 
         // 直接添加一对多的关联模型
         $form->hasMany('skus', 'SKU 列表', function (Form\NestedForm $form) {

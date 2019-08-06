@@ -5,8 +5,8 @@ use Illuminate\Routing\Router;
 Admin::registerAuthRoutes();
 
 Route::group([
-    'prefix' => config('admin.route.prefix'),
-    'namespace' => config('admin.route.namespace'),
+    'prefix'     => config('admin.route.prefix'),
+    'namespace'  => config('admin.route.namespace'),
     'middleware' => config('admin.route.middleware'),
 ], function (Router $router) {
 
@@ -37,4 +37,10 @@ Route::group([
     $router->get('categories/{id}/edit', 'CategoriesController@edit');
     $router->put('categories/{id}', 'CategoriesController@update');
     $router->get('api/categories', 'CategoriesController@apiIndex');
+
+    $router->get('crowdfunding_products', 'CrowdfundingProductsController@index');
+    $router->get('crowdfunding_products/create', 'CrowdfundingProductsController@create');
+    $router->post('crowdfunding_products', 'CrowdfundingProductsController@store');
+    $router->get('crowdfunding_products/{id}/edit', 'CrowdfundingProductsController@edit');
+    $router->put('crowdfunding_products/{id}', 'CrowdfundingProductsController@update');
 });
