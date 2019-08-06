@@ -34,10 +34,13 @@ class UpdateCrowdfundingProductProgress
 //            包含本品
             ->whereHas('items', function ($query) use ($crowdfunding) {
                 $query->where('product_id', $crowdfunding->product_id);
-            })->first(\DB::raw('count(distinct(user_id)) as user_count'), \DB::raw('sum(total_amount) as total_amount'););
+            })->first([
+                \DB::raw('count(distinct(user_id)) as user_count'),
+                \DB::raw('sum(total_amount) as total_amount')
+            ]);
 
         $crowdfunding->update([
-            'user_count'   => $data->user_count,
+            'user_count' => $data->user_count,
             'total_amount' => $data->total_amount,
         ]);
     }
