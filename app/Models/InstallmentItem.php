@@ -5,7 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class installmentItem extends Model
+class InstallmentItem extends Model
 {
     const REFUND_STATUS_PENDING = 'pending';
     const REFUND_STATUS_PROCESSING = 'processing';
@@ -35,7 +35,7 @@ class installmentItem extends Model
 
     public function installment()
     {
-        return $this->belongsTo(installment::class);
+        return $this->belongsTo(Installment::class);
     }
 
     // 创建一个访问器，返回当前还款计划需还款的总金额
@@ -44,7 +44,7 @@ class installmentItem extends Model
         // 小数点计算需要用 bcmath 扩展提供的函数
         $total = big_number($this->base)->add($this->fee);
         if (!is_null($this->fine)) {
-           $total->add($this->fine);
+            $total->add($this->fine);
         }
         return $total->getValue();
     }

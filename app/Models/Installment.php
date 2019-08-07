@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Ramsey\Uuid\Uuid;
 
-class installment extends Model
+class Installment extends Model
 {
     const STATUS_PENDING = 'pending';
     const STATUS_REPAYING = 'repaying';
@@ -31,7 +30,7 @@ class installment extends Model
 
     public function items()
     {
-        return $this->hasMany(installmentItem::class);
+        return $this->hasMany(InstallmentItem::class);
     }
 
     protected static function boot()
