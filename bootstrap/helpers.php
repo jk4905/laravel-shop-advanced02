@@ -15,3 +15,8 @@ function ngrok_url($routeName, $paremeters = [])
     }
     return route($routeName, $paremeters);
 }
+
+function big_number($number, $scale = 2)
+{
+    return new \Moontoast\Math\BigNumber($number, $scale);
+}
