@@ -65,7 +65,6 @@ abstract class CommonProductsController extends Controller
         $grid->model()->where('type', $this->getProductType())->with(['category']);
 
 
-
         $this->customGrid($grid);
 
         $grid->actions(function ($actions) {
@@ -95,7 +94,7 @@ abstract class CommonProductsController extends Controller
         $form = new Form(new Product);
 
         // 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
-        $form->hidden('type', '类型')->value(Product::TYPE_CROWDFUNDING);
+        $form->hidden('type', '类型')->value($this->getProductType());
         // 创建一个输入框，第一个参数 title 是模型的字段名，第二个参数是该字段描述
         $form->text('title', '商品名称')->rules('required');
 
@@ -125,6 +124,11 @@ abstract class CommonProductsController extends Controller
             $form->text('description', 'SKU 描述')->rules('required');
             $form->text('price', '单价')->rules('required|numeric|min:0.01');
             $form->text('stock', '剩余库存')->rules('required|integer|min:0');
+        });
+
+        $form->hasMany('properties', '商品属性', function (Form\NestedForm $form) {
+            $form->text('name', '属性名称')->rules('required');
+            $form->text('value', '属性值')->rules('required');
         });
 
         // 定义事件回调，当模型即将保存时会触发这个回调
