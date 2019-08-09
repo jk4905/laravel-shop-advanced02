@@ -183,4 +183,103 @@ class Product extends Model
         ];
         app('es')->search($params);
     }
+
+    public function demo3()
+    {
+        $params = [
+            'index' => 'products',
+            'type'  => '_doc',
+            'body'  => [
+                'query' => [
+                    'bool' => [
+                        'filter' => [
+                            ['term' => ['on_sale' => true]],
+                        ],
+                        'must'   => [
+                            [
+                                'multi_match' => [
+                                    'query'  => '内存条',
+                                    'type'   => 'best_fields', //对于multi-field的best_fields模式来说，相当于是对每个字段对查询分别进行打分，然后执行max运算获取打分最高的。
+                                    'fields' => [
+                                        'title^3',
+                                        'long_title^2',
+                                        'category^2',
+                                        'description',
+                                        'skus_title',
+                                        'skus_description',
+                                        'properties_value',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'aggs'  => [  // 聚合的键名, 也可以用 aggregations
+                    'one_properties' => [ // 这个是给聚合操作的命名, 可以是任意的
+                        'nested' => [ // 由于我们要聚合的属性是在 nested 类型字段下的属性，需要在外面套一层 nested 聚合查询
+                            'path' => 'properties', // 代表我们需要查询的 nested 字段名为 properties
+                        ],
+                        'aggs'   => [ // 在 nested 下嵌套一层聚合, 将第一层下所有的 properties 聚合
+                            'two_properties' => [ // 第二层聚合操作名, 任意
+                                'terms' => [ // terms 聚合,聚合相同的值
+                                    'field' => 'properties.name', // 我们需要聚合的字段名
+                                ],
+                                'aggs'  => [ // 第三层聚合,聚合同一个属性名的所有值
+                                    'value' => [
+                                        'terms' => [
+                                            'field' => 'properties.value' // 聚合属性值
+                                        ]
+                                    ]
+                                ]
+                            ],
+                        ],
+                    ]
+                ],
+            ],
+        ];
+        app('es')->search($params);
+
+
+
+
+        $params = [
+            'index' => 'products',
+            'type'  => '_doc',
+            'body'  => [
+                'query' => [
+                    'bool' => [
+                        'filter' => [
+                            ['term' => ['on_sale' => true]],
+                        ],
+                        'must' => [
+                            [
+                                'multi_match' => [
+                                    'query'  => '内存条',
+                                    'fields' => [
+                                        'title^3',
+                                        'long_title^2',
+                                        'category^2',
+                                        'description',
+                                        'skus_title',
+                                        'skus_description',
+                                        'properties_value',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'aggregations' => [
+                    'properties' => [
+                        'nested' => [
+                            'path' => 'properties',
+                        ],
+                    ]
+                ],
+            ],
+        ];
+
+    }
+
+
 }

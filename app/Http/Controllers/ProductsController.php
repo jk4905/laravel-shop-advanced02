@@ -83,7 +83,71 @@ class ProductsController extends Controller
                 ];
             }
         }
+
+
+        // 只有当用户有输入搜索词或者使用了类目筛选的时候才会做聚合
+        if ($search || isset($category)) {
+            $params['body']['aggs'] = [
+                'properties' => [
+                    'nested' => [
+                        'path' => 'properties',
+                    ],
+                    'aggs'   => [
+                        'properties' => [
+                            'terms' => [
+                                'field' => 'properties.name',
+                            ],
+                            'aggs'  => [
+                                'value' => [
+                                    'terms' => [
+                                        'field' => 'properties.value',
+                                    ]
+                                ]
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        // 从用户请求参数获取 filters
+        $propertyFilters = [];
+        if ($filters = $request->input('filters')) {
+            // 将获取到的字符串用符号 | 拆分成数组
+            $filterArray = explode('|', $filters);
+            foreach ($filterArray as $filter) {
+                list($name, $value) = explode(':', $filter);
+                // 将用户筛选的属性添加到数组中
+                $propertyFilters[$name] = $value;
+                $params['body']['query']['bool']['filter'][] = [
+                    'nested' => [
+                        'path'  => 'properties',
+                        'query' => [
+                            ['term' => ['properties.name' => $name]],
+                            ['term' => ['properties.value' => $value]],
+                        ],
+                    ],
+                ];
+            }
+        }
+
         $result = app('es')->search($params);
+        $properties = [];
+        // 如果返回结果里有 aggregations 字段，说明做了分面搜索
+        if (isset($result['aggregations'])) {
+            // 使用 collect 函数将返回值转为集合
+            $properties = collect($result['aggregations']['properties']['properties']['buckets'])
+                // 通过 map 方法取出我们需要的字段
+                ->map(function ($bucket) {
+                    return [
+                        'key'    => $bucket['key'],
+                        'values' => collect($bucket['value']['buckets'])->pluck('key')->all(),
+                    ];
+                })->filter(function ($property) use ($propertyFilters) {
+                    // 过滤掉只剩下一个值 或者 已经在筛选条件里的属性
+                    return count($property['values']) > 1 && !isset($propertyFilters[$property['key']]);
+                });
+        }
         // 通过 collect 函数将返回结果转为集合，并通过集合的 pluck 方法取到返回的商品 ID 数组
         $productIds = collect($result['hits']['hits'])->pluck('_id')->all();
         // 通过 whereIn 方法从数据库中读取商品数据
@@ -93,28 +157,16 @@ class ProductsController extends Controller
             'path' => route('products.index', false) // 手动构建分页的 url
         ]);
 
-//        // 创建一个查询构造器
-//        $builder = Product::query()->where('on_sale', true);
-//        // 判断是否有提交 search 参数，如果有就赋值给 $search 变量
-//        // search 参数用来模糊搜索商品
-//        if ($search = $request->input('search', '')) {
-//            $like = '%' . $search . '%';
-//            // 模糊搜索商品标题、商品详情、SKU 标题、SKU描述
-//            $builder->where(function ($query) use ($like) {
-//                $query->where('title', 'like', $like)->orWhere('description', 'like', $like)->orWhereHas('skus', function ($query) use ($like) {
-//                    $query->where('title', 'like', $like)->orWhere('description', 'like', $like);
-//                });
-//            });
-//        }
-
         return view('products.index', [
-            'products' => $pager,
-            'filters'  => [
+            'products'        => $pager,
+            'filters'         => [
                 'search' => $search,
                 'order'  => $order,
             ],
             // 等价于 isset($category) ? $category : null
-            'category' => $category ?? null,
+            'category'        => $category ?? null,
+            'properties'      => $properties,
+            'propertyFilters' => $propertyFilters,
         ]);
     }
 
