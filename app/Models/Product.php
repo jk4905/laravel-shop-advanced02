@@ -89,7 +89,7 @@ class Product extends Model
 
 
         // 如果商品有类目，则 category 字段为类目名数组，否则为空字符串
-        $arr['category'] = $this->category ? explode(' - ', $this->category->full_name) : '';
+        $arr['category'] = $this->category ? explode('-', $this->category->full_name) : '';
         // 类目的 path 字段
         $arr['category_path'] = $this->category ? $this->category->path : '';
         // strip_tags 函数可以将 html 标签去除
@@ -104,5 +104,83 @@ class Product extends Model
         });
 
         return $arr;
+    }
+
+    public function demo()
+    {
+        $params = [
+            'index' => 'products',
+            'type'  => '_doc',
+            'body'  => [
+                'from'  => 0, // 分页-页数
+                'size'  => 5, // 分页-每页多少个
+                'query' => [
+                    'bool' => [ // Elasticsearch 布尔查询
+                                'filter' => [ // 与 SQL 中的 and 类似, 表示必须过滤, 与 must 一样, 但是不打分. 如果有多个,每个条件都是一个单独的数组,而不是写一起!!!
+                                              ['term' => ['on_sale' => true]],
+                                              // term 表示这是一个[词项查询],用于搜索一个精确的值
+                                              ['prefix' => ['category_path' => '-10-']],
+                                              // prefix 表示这是一个[前缀查询],用于搜索以一个值为开头的文档
+                                ],
+                                'must'   => [
+                                    [
+                                        'multi_match' => [ // 多项匹配
+                                                           'query'  => 'iPhone', // 关键词
+                                                           'fields' => [ // 字段
+                                                                         'title^3',
+                                                                         // ^ 后的数字代表权重, 数字越高权重越大, 最后匹配出来的得分也越高
+                                                                         'long_title^2',
+                                                                         'description'
+                                                           ]
+                                        ]
+                                    ]
+                                ]
+                    ],
+                ],
+                'sort'  => [ // 排序
+                             ['price' => 'desc'], // 根据 price 进行倒序排列
+                             ['id' => 'desc'] // 如果有多项, 也是单独一个数组
+                ],
+            ],
+        ];
+        $result = app('es')->search($params);
+        count($result['hits']['hits']);  // $result['hits']['hits'] 表示命中的文档
+        $result['hits']['total']; // 总共命中多少个
+        collect($result['hits']['hits'])->pluck('_source.price');
+        collect($result['hits']['hits'])->pluck('_source.id');
+    }
+
+    public function demo2()
+    {
+        $params = [
+            'index' => 'products',
+            'type'  => '_doc',
+            'body'  => [
+                'from'  => 0,
+                'size'  => 5,
+                'query' => [
+                    'bool' => [
+                        'filter' => [
+                            ['term' => ['on_sale' => true]],
+                        ],
+                        'must'   => [
+                            'multi_match' => [
+                                'query'  => '256G',
+                                'fields' => [
+                                    // 'skus.title', 直接查询无法命中
+                                    // 'skus.description', 直接查询无法命中
+                                    // 'properties.value', 直接查询无法命中
+
+                                    'skus_title', // 需要在索引中添加 copy_to 才能命中
+                                    'skus_description',
+                                    'properties_value',
+                                ],
+                            ]
+                        ]
+                    ],
+                ]
+            ],
+        ];
+        app('es')->search($params);
     }
 }
