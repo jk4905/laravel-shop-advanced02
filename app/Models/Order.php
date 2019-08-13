@@ -33,10 +33,12 @@ class Order extends Model
 
     const TYPE_NORMAL = 'normal';
     const TYPE_CROWDFUNDING = 'crowdfunding';
+    const TYPE_SECKILL = 'crowdfunding';
 
     public static $typeMap = [
-        self::TYPE_NORMAL => '普通商品订单',
+        self::TYPE_NORMAL       => '普通商品订单',
         self::TYPE_CROWDFUNDING => '众筹商品订单',
+        self::TYPE_SECKILL      => '秒杀商品订单',
     ];
 
     protected $fillable = [
@@ -107,7 +109,7 @@ class Order extends Model
         $prefix = date('YmdHis');
         for ($i = 0; $i < 10; $i++) {
             // 随机生成 6 位的数字
-            $no = $prefix.str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $no = $prefix . str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             // 判断是否已经存在
             if (!static::query()->where('no', $no)->exists()) {
                 return $no;
