@@ -133,11 +133,10 @@ class OrderService
         return $order;
     }
 
-    public function seckill(User $user, UserAddress $address, ProductSku $sku)
+    public function seckill(User $user, $address, ProductSku $sku)
     {
         $order = \DB::transaction(function () use ($user, $address, $sku) {
 //            保存地址最后使用时间
-            $address->update(['last_used_at' => Carbon::now()]);
             $order = new Order([
                 'address'      => [
                     'address'       => $address->full_address,
