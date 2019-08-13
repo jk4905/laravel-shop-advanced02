@@ -33,7 +33,7 @@ class Order extends Model
 
     const TYPE_NORMAL = 'normal';
     const TYPE_CROWDFUNDING = 'crowdfunding';
-    const TYPE_SECKILL = 'crowdfunding';
+    const TYPE_SECKILL = 'seckill';
 
     public static $typeMap = [
         self::TYPE_NORMAL       => '普通商品订单',
