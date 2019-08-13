@@ -25,7 +25,7 @@ class CreateInstallmentItemsTable extends Migration
             $table->string('payment_no')->nullable()->comment('支付流水号');
             $table->dateTime('paid_at')->nullable()->comment('支付时间');
             $table->dateTime('due_date')->comment('逾期时间');
-            $table->string('refund_status')->default(\App\Models\installmentItem::REFUND_STATUS_PENDING)->comment('退款状态');
+            $table->string('refund_status')->default(\App\Models\InstallmentItem::REFUND_STATUS_PENDING)->comment('退款状态');
             $table->timestamps();
         });
     }
