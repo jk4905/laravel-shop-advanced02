@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Exceptions\InvalidRequestException;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductSku;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -36,7 +38,9 @@ class SeckillOrderRequest extends FormRequest
                     if ($stock < 1) {
                         return $fail('该商品已售完');
                     }
-
+                    // 大多数用户在上面的逻辑里就被拒绝了
+                    // 因此下方的 SQL 查询不会对整体性能有太大影响
+                    $sku = ProductSku::find($value);
                     if ($sku->product->seckill->is_before_start) {
                         return $fail('秒杀尚未开始');
                     }
