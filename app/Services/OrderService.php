@@ -133,16 +133,16 @@ class OrderService
         return $order;
     }
 
-    public function seckill(User $user, $address, ProductSku $sku)
+    public function seckill(User $user, array $addressData, ProductSku $sku)
     {
-        $order = \DB::transaction(function () use ($user, $address, $sku) {
+        $order = \DB::transaction(function () use ($user, $addressData, $sku) {
 //            保存地址最后使用时间
             $order = new Order([
-                'address'      => [
-                    'address'       => $address->full_address,
-                    'zip'           => $address->zip,
-                    'contact_name'  => $address->contact_name,
-                    'contact_phone' => $address->contact_phone,
+                'address'      => [ // address 字段直接从 $addressData 数组中读取
+                                    'address'       => $addressData['province'] . $addressData['city'] . $addressData['district'] . $addressData['address'],
+                                    'zip'           => $addressData['zip'],
+                                    'contact_name'  => $addressData['contact_name'],
+                                    'contact_phone' => $addressData['contact_phone'],
                 ],
                 'type'         => Order::TYPE_SECKILL,
                 'total_amount' => $sku->price,
