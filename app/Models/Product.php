@@ -290,5 +290,84 @@ class Product extends Model
 
     }
 
+    public function test()
+    {
+        $params = [
+            'index' => 'products',
+            'type'  => '_doc',
+            'body'  => [
+                'from'  => 0,
+                'size'  => 15,
+                'query' => [
+                    'bool' => [
+                        'filter'  => [
+                            ['term' => ['on_sale' => true]],
+                            ['prefix' => ['category_path' => '-10-']],
+                        ],
+                        'must'    => [
+                            'multi_match' => [
+                                'query'  => '内存条',
+                                'type'   => 'best_fields',
+                                'fields' => [
+                                    'title^3',
+                                    'long^2',
+                                ],
+                            ],
+                        ],
+                        'must_no' => [
+                            ['term' => ['id' => 1]],
+                        ],
+                        'should'  => [
+                            [
+                                'nested' => [
+                                    'path'  => 'properties',
+                                    'query' => [
+                                        ['term' => ['properties.name' => 'a']],
+                                    ],
+                                ],
+                            ],
+                            [
+                                'nested' => [
+                                    'path'  => 'properties',
+                                    'query' => [
+                                        ['term' => ['properties.name' => 'b']]
+                                    ]
+                                ]
+                            ],
+                            [
+                                'nested' => [
+                                    'path'  => 'properties',
+                                    'query' => [
+                                        ['term' => ['properties_name' => 'c']],
+                                    ],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                'aggs'  => [
+                    'one' => [
+                        'nested' => [
+                            'path' => 'properties',
+                        ],
+                        'aggs'   => [
+                            'two' => [
+                                'terms' => [
+                                    'field' => 'properties.name',
+                                ],
+                                'aggs'  => [
+                                    'value' => [
+                                        'terms' => [
+                                            'field' => 'properties.value'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                ]
+            ],
+        ];
+    }
 
 }
