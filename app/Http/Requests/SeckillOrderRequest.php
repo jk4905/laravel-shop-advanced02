@@ -32,12 +32,15 @@ class SeckillOrderRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     // 从 Redis 中读取数据
                     $stock = \Redis::get('seckill_sku_' . $value);
+                    // 如果是 null 代表这个 SKU 不是秒杀商品
                     if (is_null($stock)) {
                         return $fail('该商品不存在');
                     }
+                    // 判断库存
                     if ($stock < 1) {
                         return $fail('该商品已售完');
                     }
+
                     // 大多数用户在上面的逻辑里就被拒绝了
                     // 因此下方的 SQL 查询不会对整体性能有太大影响
                     $sku = ProductSku::find($value);
