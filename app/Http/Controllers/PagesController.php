@@ -15,7 +15,7 @@ class PagesController extends Controller
             'consumerKey' => '141759998',
             'consumerSecret' => 'fb40aa7bbaca5934'
         ));
-        $requestToken = $client->getRequestToken('www.baidu.com');
+        $requestToken = $client->getRequestToken('http://shop.kagami.top');
         $authorizeUrl = $client->getAuthorizeUrl($requestToken['oauth_token']);
         dd($authorizeUrl);
         exit;

@@ -1,6 +1,7 @@
 <?php
 
-Route::redirect('/', '/products')->name('root');
+//Route::redirect('/', '/products')->name('root');
+Route::redirect('/', '/demo')->name('root');
 Route::get('products', 'ProductsController@index')->name('products.index');
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 Route::get('demo','PagesController@demo');
