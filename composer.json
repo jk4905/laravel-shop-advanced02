@@ -47,7 +47,8 @@
         },
         "classmap": [
             "database/seeds",
-            "database/factories"
+            "database/factories",
+	    "app/Libraries/evernote-sdk-php-master"
         ],
         "files": [
             "bootstrap/helpers.php"

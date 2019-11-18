@@ -111,29 +111,85 @@ return [
     |
     */
 
-    'redis' => [
+    //    'redis' => [
+    //
+    //        'client' => env('REDIS_CLIENT', 'predis'),
+    //
+    //        'options' => [
+    //            'cluster' => env('REDIS_CLUSTER', 'predis'),
+    //        ],
+    //
+    //        'default' => [
+    //            'host'     => env('REDIS_HOST', '127.0.0.1'),
+    //            'password' => env('REDIS_PASSWORD', null),
+    //            'port'     => env('REDIS_PORT', 6379),
+    //            'database' => env('REDIS_DB', 0),
+    //        ],
+    //
+    //        'cache' => [
+    //            'host'     => env('REDIS_HOST', '127.0.0.1'),
+    //            'password' => env('REDIS_PASSWORD', null),
+    //            'port'     => env('REDIS_PORT', 6379),
+    //            'database' => env('REDIS_CACHE_DB', 1),
+    //        ],
+    //    ],
 
-        'client' => env('REDIS_CLIENT', 'predis'),
 
-        'options' => [
-            'cluster' => env('REDIS_CLUSTER', 'predis'),
+    'redis'         => [
+//        'client'   => 'predis',
+        'client'   => 'phpredis',
+        'cluster'  => true,
+        'options'  => [
+            'cluster' => 'redis'
         ],
-
-        'default' => [
-            'host'     => env('REDIS_HOST', '127.0.0.1'),
-            'password' => env('REDIS_PASSWORD', null),
-            'port'     => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_DB', 0),
+        'default'  => [
+            'host'         => env('REDIS_HOST_FIRST', '127.0.0.1'),
+            'password'     => env('REDIS_PASSWORD', null),
+            'port'         => env('REDIS_PORT', 6379),
+            'database'     => 1,
+            'read_timeout' => env('REDIS_TIMEOUT', 5),
         ],
-
-        'cache' => [
-            'host'     => env('REDIS_HOST', '127.0.0.1'),
-            'password' => env('REDIS_PASSWORD', null),
-            'port'     => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_CACHE_DB', 1),
+        'clusters' => [
+            'mycluster1' => [
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6381,
+                    'database' => 0,
+                ],
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6382,
+                    'database' => 0,
+                ],
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6383,
+                    'database' => 0,
+                ],
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6384,
+                    'database' => 0,
+                ],
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6385,
+                    'database' => 0,
+                ],
+                [
+                    'host'     => '127.0.0.1',
+                    'password' => null,
+                    'port'     => 6386,
+                    'database' => 0,
+                ],
+            ],
         ],
     ],
-
     'elasticsearch' => [
         'host' => explode(',', env('ES_HOSTS')),
     ],
